@@ -1,0 +1,18 @@
+Package: shortpepr
+Type: Package
+Title: Tool for analysing short peptides
+Version: 0.1.1
+Author: Luis Kress (TRON)
+Maintainer: Luis Kress <kresslui@tron-mainz.de>
+Description: Simply create PWMs. Mainly developed for 
+    analysis of MHC bound peptides.
+Imports:
+        knitr,
+        rmarkdown,
+        tidyverse
+License: GPL-3
+StagedInstall: no
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+VignetteBuilder: knitr

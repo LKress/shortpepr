@@ -1,0 +1,114 @@
+---
+output: github_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# shortpepr
+
+The shortpepr tool can be used to generate PWMs from peptides and to calculate
+the information content. It is intended to use with peptides that are bound to
+MHCI molecules, but can be applied to all gap free peptide alignments.
+
+## Installation
+
+You can install the development version of shortpepr like so:
+
+``` r
+if(!require(devtools)){
+    install.packages("devtools")
+    library(devtools)
+}
+
+devtools::build()
+
+install.packages("<path_to_repo>/shortpepr_0.1.1.tar.gz", repos = NULL, type="source")
+```
+
+## Examples
+
+Shortpepr is designed to work with tibbles from tidyverse. As example epitopes
+from the IEDB are loaded.
+
+```{r epitopes}
+suppressMessages({
+library(shortpepr)
+library(tidyverse)
+})
+
+# dataframe containing the peptide, allele and the length of the peptide
+example_epitopes <- system.file(
+  "extdata",
+  "test_epitopes.tsv", 
+  package = "shortpepr")
+example_epitopes_df <- read_tsv(example_epitopes)
+head(example_epitopes_df)
+```
+
+To generate PWMs background frequencies are required.
+
+```{r background}
+# the background count and frequencies of amino acids (e.g. from the proteome)
+example_background <- system.file(
+  "extdata",
+  "test_background.tsv", 
+  package = "shortpepr")
+example_background_df <- read_tsv(example_background) %>% select(name, freq) %>% deframe()
+example_background_df
+```
+
+A PWM can be generated from a vector of peptides.
+
+```{r pwmgen}
+# a PWM can be directly generated from a list of peptides and a given background frequency
+test_pwm <- example_epitopes_df %>% 
+  filter(allele == "H2Db", len==9) %>% 
+  pull(peptide) %>% 
+  seqs2pwm(background = example_background_df)
+
+test_pwm
+```
+
+The funciton `create_pwm_df` generates a PWM for all allele length combinations
+for which at least `min_datapoints` are available.
+
+```{r pwmdf}
+pwm_df <- example_epitopes_df %>%
+  create_pwm_df(min_datapoints=50, background=example_background_df)
+
+pwm_df
+```
+
+Peptides can be scored based on a given PWM dataframe:
+
+```{r scoring}
+example_peptide = "ASNENAETM"
+score_seq_allele(example_peptide, "H2Db", pwm_df)
+```
+
+For a given frequency matrix, the information content at the different positions can be determined
+by using the function `calculate_information_content`.
+
+```{r infocontent}
+example_epitopes_df %>%
+  filter(allele == "H2Db", len==9) %>%
+  pull(peptide) %>% 
+  seqs2pfm() %>% 
+  calculate_information_content()
+```
+
+# Developer information
+
+Before commiting changes update the documentation and this README:
+
+```{r docupdate, eval = FALSE}
+devtools::document()
+devtools::build_readme()
+```
